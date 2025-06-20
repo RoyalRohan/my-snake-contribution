@@ -1,0 +1,56 @@
+name: Generate Contribution Snake
+on:
+  schedule:
+    - cron: "*/30 * * * *"  # Updates every 30 minutes
+  workflow_dispatch:        # Manual trigger option
+
+jobs:
+  generate-snake:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      # 1. Checkout repository
+      - uses: actions/checkout@v4
+
+      # 2. Install dependencies
+      - name: Setup environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl git
+
+      # 3. Generate snake with timestamp (forces update)
+      - name: Create Snake
+        run: |
+          # Get current timestamp
+          TIMESTAMP=$(date +"%Y-%m-%dT%H:%M:%S")
+          
+          # Download snake with cache-busting timestamp
+          SVG_URL="https://raw.githubusercontent.com/Platane/snk/output/github-contribution-grid-snake/dark/RoyalRohan.svg?t=$TIMESTAMP"
+          curl -s "$SVG_URL" -o snake.svg
+          
+          # Verify download
+          if [ ! -f "snake.svg" ]; then
+            echo "❌ Error: Failed to download snake"
+            exit 1
+          fi
+          
+          # Force update marker
+          echo "🐍 Last updated: $TIMESTAMP" > last_updated.txt
+          echo "✅ Snake generated successfully!"
+
+      # 4. Debug output (visible in Actions tab)
+      - name: Show files
+        run: |
+          ls -lh
+          head -n 5 snake.svg
+
+      # 5. Deploy to output branch
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: output
+          keep_files: true
+          force_orphan: false
