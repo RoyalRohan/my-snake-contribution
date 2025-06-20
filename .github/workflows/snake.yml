@@ -1,56 +1,37 @@
 name: Generate Contribution Snake
 on:
   schedule:
-    - cron: "*/30 * * * *"  # Updates every 30 minutes
-  workflow_dispatch:        # Manual trigger option
+    - cron: "0 * * * *"  # Runs every hour
+  workflow_dispatch:     # Allows manual runs
 
 jobs:
   generate-snake:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-    
+      contents: write    # Required to push to output branch
+      
     steps:
-      # 1. Checkout repository
+      # Step 1: Checkout code
       - uses: actions/checkout@v4
 
-      # 2. Install dependencies
-      - name: Setup environment
+      # Step 2: Generate snake (simplified reliable method)
+      - name: Generate Snake
         run: |
-          sudo apt-get update
-          sudo apt-get install -y curl git
+          curl -s "https://raw.githubusercontent.com/Platane/snk/output/github-contribution-grid-snake/dark/RoyalRohan.svg" > snake.svg
+          echo "Last updated: $(date)" > timestamp.txt
 
-      # 3. Generate snake with timestamp (forces update)
-      - name: Create Snake
+      # Step 3: Verify file was created
+      - name: Check File
         run: |
-          # Get current timestamp
-          TIMESTAMP=$(date +"%Y-%m-%dT%H:%M:%S")
-          
-          # Download snake with cache-busting timestamp
-          SVG_URL="https://raw.githubusercontent.com/Platane/snk/output/github-contribution-grid-snake/dark/RoyalRohan.svg?t=$TIMESTAMP"
-          curl -s "$SVG_URL" -o snake.svg
-          
-          # Verify download
           if [ ! -f "snake.svg" ]; then
-            echo "❌ Error: Failed to download snake"
+            echo "❌ Error: snake.svg not generated!"
             exit 1
           fi
-          
-          # Force update marker
-          echo "🐍 Last updated: $TIMESTAMP" > last_updated.txt
-          echo "✅ Snake generated successfully!"
+          echo "✅ Snake file created successfully"
 
-      # 4. Debug output (visible in Actions tab)
-      - name: Show files
-        run: |
-          ls -lh
-          head -n 5 snake.svg
-
-      # 5. Deploy to output branch
-      - uses: peaceiris/actions-gh-pages@v3
+      # Step 4: Deploy to output branch
+      - uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          publish_branch: output
-          keep_files: true
-          force_orphan: false
+          branch: output
+          folder: .
+          clean: false
