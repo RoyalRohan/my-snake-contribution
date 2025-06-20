@@ -1,23 +1,36 @@
-name: Generate Snake
+name: Generate Contribution Snake
 on:
   schedule:
-    - cron: "0 0 * * *"
-  workflow_dispatch:
+    - cron: "0 0 * * *"  # Runs daily at midnight UTC
+  workflow_dispatch:     # Allows manual triggering
 
 jobs:
-  build:
+  generate-snake:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Critical for pushing to the repo
+      contents: write    # Essential for pushing to the 'output' branch
+      
     steps:
-      - uses: actions/checkout@v4
-      - uses: Platane/snk@master
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          github_user_name: RoyalRohan
-          svg_out_path: dist/github-contribution-grid-snake.svg
-      - uses: crazy-max/ghaction-github-pages@v3
+          fetch-depth: 0  # Fetches entire commit history (better for contributions graph)
+
+      # Step 2: Generate the snake graphic
+      - name: Generate Snake
+        uses: Platane/snk@master
         with:
-          target_branch: output
-          build_dir: dist
-          keep_history: true  # Preserves commit history
-          force_orphan: false
+          github_user_name: RoyalRohan  # Your GitHub username
+          svg_out_path: dist/github-contribution-snake.svg  # Output path
+          color: "7F3BF7"  # Purple color (customize HEX code without #)
+          type: "grid"     # Style: 'grid' (default) or 'greedy'
+
+      # Step 3: Deploy to output branch
+      - name: Deploy Snake
+        uses: crazy-max/ghaction-github-pages@v3
+        with:
+          target_branch: output  # Special branch for the SVG
+          build_dir: dist        # Where the SVG is saved
+          keep_history: true     # Maintains commit history
+          commit_message: "Update contribution snake"  # Custom commit message
