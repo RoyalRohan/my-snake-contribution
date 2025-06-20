@@ -1,0 +1,32 @@
+name: Generate Snake
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"  # Hourly updates
+
+jobs:
+  generate-snake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Method 1: Generate locally (fast)
+      - name: Try Local Generation
+        id: local-snake
+        run: |
+          curl -s "https://contributions-svg.vercel.app/api/snake?user=RoyalRohan&format=svg" > snake.svg
+          echo "LOCAL_SNAKE=generated" >> $GITHUB_ENV
+        continue-on-error: true
+
+      # Method 2: Fallback to pre-generated
+      - name: Use Pre-Generated
+        if: env.LOCAL_SNAKE != 'generated'
+        run: |
+          curl -s "https://raw.githubusercontent.com/Platane/snk/output/github-contribution-grid-snake/dark/RoyalRohan.svg" > snake.svg
+
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: output
+          keep_files: true
