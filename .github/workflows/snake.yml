@@ -1,21 +1,23 @@
-name: Snake Animation
+name: Generate Snake
 on:
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Critical for pushing to the repo
     steps:
       - uses: actions/checkout@v4
       - uses: Platane/snk@master
         with:
           github_user_name: RoyalRohan
           svg_out_path: dist/github-contribution-grid-snake.svg
-          color: '7F3BF7'  # Purple snake
       - uses: crazy-max/ghaction-github-pages@v3
         with:
           target_branch: output
           build_dir: dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          keep_history: true  # Preserves commit history
+          force_orphan: false
