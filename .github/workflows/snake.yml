@@ -1,0 +1,24 @@
+name: Generate Snake
+on:
+  workflow_dispatch:  # Manual trigger only for now
+permissions:
+  contents: write     # Essential permission
+
+jobs:
+  generate-snake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Simplified snake generation
+      - name: Generate Snake
+        run: |
+          curl -s https://raw.githubusercontent.com/Platane/snk/master/snk.sh | bash -s -- -t github-contribution-grid-snake -u RoyalRohan > snake.svg
+
+      # Deploy to output branch
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: output
+          folder: .
+          clean: false
